@@ -40,7 +40,7 @@ venv\Scripts\Activate.ps1
 which python
 python --version
 
-# Para instalar as dependencias do projeto, ja no venv rode: (no Windows e Linux)
+# Para instalar as dependencias do projeto, já no venv rode: (no Windows e Linux)
 pip install -r requirements.txt
 ``` 
 
@@ -88,9 +88,12 @@ source venv/bin/activate
 # Verifique se o python está na versão desejada
 which python
 python --version
+
+# Para instalar as dependencias do projeto, já no venv rode: (no Windows e Linux)
+pip install -r requirements.txt
 ```
 
-### Para o rodar o programa:
+### Para o rodar o programa, já com o venv ativado e as dependências instaladas:
 
 ```
 python main.py
