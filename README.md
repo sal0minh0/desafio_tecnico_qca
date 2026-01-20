@@ -28,21 +28,21 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine
 # e esse
 Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1" -OutFile "./install-pyenv-win.ps1"; &"./install-pyenv-win.ps1"
 
+# Clone o projeto
+git clone https://github.com/sal0minh0/desafio_tecnico_qca.git
+
 # Pyenv agora foi instalado, agora reinicie o Powershell do windows (não precisa do administrador)
 # Instale o python desejado 
 pyenv install 3.13.11
 
-# Clone o projeto
-git clone https://github.com/sal0minh0/desafio_tecnico_qca.git
+# Use essa versão python
+pyenv local 3.13.11
 
 # Crie o venv para o projeto, já com o terminal na pasta do projeto
 python -m venv venv
 
 # Para usar o venv no windows
 venv\Scripts\Activate.ps1
-
-# Use essa versão python
-pyenv global 3.13.11
 
 # Verificar se está na versão correta
 python --version
@@ -80,14 +80,14 @@ export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 
+# Clone o projeto
+git clone https://github.com/sal0minh0/desafio_tecnico_qca.git
+
 # Reinicie o terminal e depois instale a versão do python 3.13
 pyenv install 3.13.11
 
 # Use a versão
 pyenv local 3.13.11
-
-# Clone o projeto
-git clone https://github.com/sal0minh0/desafio_tecnico_qca.git
 
 # Crie um venv com esse Python, já na pasta do projeto
 python -m venv venv
