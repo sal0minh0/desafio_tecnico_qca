@@ -44,7 +44,6 @@ python -m venv venv
 venv\Scripts\Activate.ps1
 
 # Verificar se está na versão correta
-which python
 python --version
 
 # Para instalar as dependencias do projeto, já no venv rode: (no Windows e Linux)
