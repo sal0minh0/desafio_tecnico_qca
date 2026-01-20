@@ -34,7 +34,10 @@ pyenv install 3.13.11
 # Use essa versão python
 pyenv global 3.13.11
 
-# Crie o venv para o projeto
+# Clone o projeto
+git clone https://github.com/sal0minh0/desafio_tecnico_qca.git
+
+# Crie o venv para o projeto, já com o terminal na pasta do projeto
 python -m venv venv
 
 # Para usar o venv no windows
@@ -83,7 +86,10 @@ pyenv install 3.13.11
 # Use a versão
 pyenv local 3.13.11
 
-# Crie um venv com esse Python
+# Clone o projeto
+git clone https://github.com/sal0minh0/desafio_tecnico_qca.git
+
+# Crie um venv com esse Python, já na pasta do projeto
 python -m venv venv
 
 # Use o venv
