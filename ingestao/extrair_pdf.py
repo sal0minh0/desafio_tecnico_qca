@@ -2,7 +2,8 @@ import re
 import json  
 import pdfplumber  
 from pathlib import Path
-from pydantic import BaseModel, Field, field_validator, ValidationError
+from decimal import Decimal
+from pydantic import BaseModel, Field, ValidationError
 from typing import Optional
 from datetime import date
 
@@ -11,25 +12,15 @@ class Produto(BaseModel):
     """Validar cada item do pedido"""
     Nome_Produto: str = Field(..., min_length=1)
     Quantidade: int = Field(..., gt=0)
-    Preco_Unitario: float = Field(..., gt=0)
+    Preco_Unitario: Decimal = Field(..., gt=0, decimal_places=2)
 
 
 class Pedido(BaseModel):
     """Validar o pedido"""
     ID_Pedido: str = Field(..., min_length=1)
-    Data: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")  # YYYY-MM-DD
+    Data:  date  
     ID_Cliente: str = Field(..., min_length=1)
     Tabela_Itens: list[Produto] = Field(..., min_length=1)
-
-    @field_validator("Data")
-    @classmethod
-    def validar_data(cls, v: str) -> str:
-        """Verifica se a data é válida"""
-        try:
-            date.fromisoformat(v)
-        except ValueError:
-            raise ValueError(f"Data inválida: {v}")
-        return v
 
 
 class ExtrairPDF:  
@@ -40,7 +31,7 @@ class ExtrairPDF:
         self.caminho_pasta = caminho_pasta
         
     def extrair_dados_do_texto(self, texto: str) -> dict:
-        """Lê o texto do PDF e retorna: ID do pedido, data, cliente e lista de produtos"""
+        """Lê o texto do PDF e retorna:  ID do pedido, data, cliente e lista de produtos"""
         dados_extraidos = {}
 
         # Retorna a Order ID
@@ -74,7 +65,7 @@ class ExtrairPDF:
                     continue
                     
                 # E para quando chegar no total
-                if "TotalPrice" in linha or "Total Price" in linha:
+                if "TotalPrice" in linha or "Total Price" in linha: 
                     break
 
                 # Serve para capturar os valores do nome, quantidade, preço_unitario pelo regex
@@ -84,21 +75,45 @@ class ExtrairPDF:
                     nome_produto, quantidade, preco_unitario = produto_match.groups()
                     
                     tabela_produtos.append({
-                        "Nome_Produto": nome_produto.strip(),
+                        "Nome_Produto": nome_produto,
                         "Quantidade": int(quantidade),
-                        "Preco_Unitario": float(preco_unitario)
+                        "Preco_Unitario": Decimal(preco_unitario)  # Convertido para Decimal
                     })
+                else:
+                    # Log para debug de linhas não capturadas
+                    linha_limpa = linha
+                    if linha_limpa:  # Ignora linhas vazias
+                        pass  # Descomente para debug:  print(f"  [DEBUG] Linha ignorada: {linha}")
 
         dados_extraidos["Tabela_Itens"] = tabela_produtos
         return dados_extraidos
         
-    def validar_dados(self, dados: dict) -> Optional[Pedido]:
+    def validar_dados(self, dados: dict, arquivo:  str = "") -> Optional[Pedido]:
         """Valida os dados extraídos"""
+        # Verifica campos obrigatórios
+        campos_faltando = []
+        if not dados.get("ID_Pedido"):
+            campos_faltando.append("ID_Pedido")
+        if not dados. get("Data"):
+            campos_faltando.append("Data")
+        if not dados.get("ID_Cliente"):
+            campos_faltando.append("ID_Cliente")
+        if not dados.get("Tabela_Itens"):
+            campos_faltando.append("Tabela_Itens")
+        
+        if campos_faltando:
+            print(f"{arquivo}: Campos obrigatórios faltando:  {', '.join(campos_faltando)}")
+            return None
+        
         try:
             pedido_validado = Pedido(**dados)
+            print(f"{arquivo}: Validado.")
             return pedido_validado
         except ValidationError as e:
-            print(f"Erro de validação: {e}")
+            print(f"{arquivo}:  Erro na validação:")
+            for erro in e.errors():
+                campo = ' -> '.join(str(loc) for loc in erro['loc'])
+                print(f"  - Campo '{campo}': {erro['msg']}")
             return None
 
     def extrair_conteudo_pdf(self, caminho_pdf: Path) -> Optional[dict]:
@@ -114,9 +129,9 @@ class ExtrairPDF:
         dados_brutos = self.extrair_dados_do_texto(texto_completo)
         
         # Validar antes de retornar
-        pedido_validado = self.validar_dados(dados_brutos)
+        pedido_validado = self.validar_dados(dados_brutos, caminho_pdf.name)
         if pedido_validado:
-            return pedido_validado.model_dump()
+            return pedido_validado. model_dump()
         return None
     
     def listar_arquivos_pdf(self) -> list[Path]:
@@ -133,7 +148,7 @@ class ExtrairPDF:
                 try:
                     dados_existentes = json.load(arquivo)
                 except json.JSONDecodeError:
-                    dados_existentes = []  # Arquivo corrompido, começa do zero
+                    dados_existentes = [] 
         else:  
             dados_existentes = []
         
@@ -145,7 +160,7 @@ class ExtrairPDF:
         duplicados = 0
         
         for dado in lista_dados:
-            if dado and dado.get("ID_Pedido") not in ids_existentes:
+            if dado and dado.get("ID_Pedido") not in ids_existentes: 
                 dados_novos.append(dado)
                 ids_existentes.add(dado["ID_Pedido"])  # Evita duplicidade
             else:
@@ -163,9 +178,9 @@ class ExtrairPDF:
         
         # Salva tudo no arquivo
         with open(caminho_saida, "w", encoding="utf-8") as arquivo:
-            json.dump(dados_existentes, arquivo, ensure_ascii=False, indent=2)
+            json.dump(dados_existentes, arquivo, ensure_ascii=False, indent=2, default=str)
         
-        print(f"{len(dados_novos)} pedido(s) salvo(s) com sucesso.")
+        print(f"{len(dados_novos)} pedido(s) salvo(s) com sucesso em '{caminho_saida}'.")
 
     def extrair_arquivo_unico(self, nome_arquivo: str) -> None:
         """Extrai apenas um PDF pelo nome do arquivo"""
@@ -175,9 +190,13 @@ class ExtrairPDF:
             print(f"Arquivo '{nome_arquivo}' não encontrado.")
             return
         
-        print(f"\nProcessando: {nome_arquivo}")
+        print(f"\nProcessando: {nome_arquivo}...")
         dados_extraidos = self.extrair_conteudo_pdf(caminho_arquivo)
-        self.salvar_em_json([dados_extraidos])
+        
+        if dados_extraidos: 
+            self.salvar_em_json([dados_extraidos])
+        else:
+            print(f"Nenhum dado válido extraído de '{nome_arquivo}'.")
     
     def extrair_multiplos_arquivos(self, numero_de_arquivos: int) -> None:
         """Extrai uma quantidade específica de PDFs"""
@@ -189,16 +208,20 @@ class ExtrairPDF:
         
         arquivos_para_processar = min(max(numero_de_arquivos, 1), len(arquivos_pdf))
         
+        print(f"\nProcessando {arquivos_para_processar} de {len(arquivos_pdf)} arquivo(s)...\n")
+        
         todos_dados_extraidos = []
         
         for arquivo_pdf in arquivos_pdf[:arquivos_para_processar]:    
-            print(f"\nProcessando: {arquivo_pdf.name}")
+            print(f"Processando: {arquivo_pdf.name}...")
             dados = self.extrair_conteudo_pdf(arquivo_pdf)
             if dados:  # Só adiciona se passou na validação
                 todos_dados_extraidos.append(dados)
 
-        if todos_dados_extraidos:
+        if todos_dados_extraidos: 
             self.salvar_em_json(todos_dados_extraidos)
+        else:
+            print("\nNenhum dado válido foi extraído.")
     
     def extrair_todos_arquivos(self) -> None:
         """Extrai todos os PDFs da pasta"""
@@ -216,39 +239,44 @@ class ExtrairPDF:
             print(f"Processando: {arquivo_pdf.name}")
             dados = self.extrair_conteudo_pdf(arquivo_pdf)
             if dados:  # Só adiciona se passou na validação
-                todos_dados_extraidos.append(dados)
+                todos_dados_extraidos. append(dados)
 
         if todos_dados_extraidos:
             self.salvar_em_json(todos_dados_extraidos)
+        else:
+            print("\nNenhum dado válido foi extraído.")
 
 
 def main():
     extrator = ExtrairPDF(Path("../invoices"))
 
     opcao_usuario = input(
-        "Escolha uma opção:\n"
-        " 1 - Extrair um PDF específico\n"
-        " 2 - Extrair uma quantidade de PDFs\n"
-        " 3 - Extrair todos os PDFs\n"
+        "\n"
+        "EXTRATOR DE PDFs\n"
+        "\n"
+        ">   1 - Extrair um PDF específico\n"
+        ">   2 - Extrair uma quantidade de PDFs\n"
+        ">   3 - Extrair todos os PDFs\n"
+        "\n"
         "Opção: "
-    ).strip()  
+    ) 
     
     match opcao_usuario:
-        case '1':
-            nome_arquivo_pdf = input("\nNome do arquivo PDF: ").strip()
+        case '1': 
+            nome_arquivo_pdf = input("\n> Nome do arquivo PDF:  ")
             extrator.extrair_arquivo_unico(nome_arquivo_pdf)
             
-        case '2':
+        case '2': 
             arquivos_pdf = extrator.listar_arquivos_pdf()
             print(f"\nEncontrado(s) {len(arquivos_pdf)} arquivo(s) PDF")
             
             try: 
-                quantidade = int(input("\nQuantos deseja processar? ").strip())
+                quantidade = int(input("Quantos deseja processar? "))
                 extrator.extrair_multiplos_arquivos(quantidade)
             except ValueError:  
                 print("Número inválido.")
                 
-        case '3':
+        case '3': 
             extrator.extrair_todos_arquivos()
             
         case _:  
