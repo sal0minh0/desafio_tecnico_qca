@@ -32,9 +32,6 @@ Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/pyenv
 # Instale o python desejado 
 pyenv install 3.13.11
 
-# Use essa versão python
-pyenv global 3.13.11
-
 # Clone o projeto
 git clone https://github.com/sal0minh0/desafio_tecnico_qca.git
 
@@ -43,6 +40,9 @@ python -m venv venv
 
 # Para usar o venv no windows
 venv\Scripts\Activate.ps1
+
+# Use essa versão python
+pyenv global 3.13.11
 
 # Verificar se está na versão correta
 python --version
