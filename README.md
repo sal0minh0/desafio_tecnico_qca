@@ -8,7 +8,7 @@
 
 > Extrair dados de um PDF e processar faturas do setor financeiro de uma empresa.
 
-### Instruções de Instalação
+## Instruções de Instalação
 
 *Como foi pedida uma versão do python inferior à atual, seguem os passos para instalação em qualquer máquina Windows e Linux*
 
