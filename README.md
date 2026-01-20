@@ -21,10 +21,14 @@
 # No Windows o processo é mais fácil
 
 # Instale o Pyenv, caso não tenha a versão do python antiga
+# Em um Powershell como administrador, rode em sequência esse comando
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine
 
-winget install pyenv-win
+# e esse
+Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1" -OutFile "./install-pyenv-win.ps1"; &"./install-pyenv-win.ps1"
 
-# Instale o python desejado (como no Linux)
+# Pyenv agora foi instalado, agora reinicie o Powershell do windows (não precisa do administrador)
+# Instale o python desejado 
 pyenv install 3.13.11
 
 # Use essa versão python
