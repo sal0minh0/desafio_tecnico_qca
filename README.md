@@ -8,6 +8,10 @@
 
 > Extrair dados de um PDF e processar faturas do setor financeiro de uma empresa.
 
+### Foto do Programa:
+
+![foto do Programa](assets_readme/programa_rodando.png)
+
 ## Instruções de Instalação
 
 *Como foi pedida uma versão do python inferior à atual, seguem os passos para instalação em qualquer máquina Windows e Linux*
@@ -84,4 +88,10 @@ source venv/bin/activate
 # Verifique se o python está na versão desejada
 which python
 python --version
+```
+
+### Para o rodar o programa:
+
+```
+python main.py
 ```
