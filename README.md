@@ -14,7 +14,8 @@
 
 ## Instruções de Instalação
 
-*Como foi pedida uma versão do python inferior à atual, seguem os passos para instalação em qualquer máquina Windows e Linux*
+*Como foi pedida uma versão do python inferior à atual, seguem os passos para instalação em qualquer máquina Windows e Linux* <br><br>
+*Se não deseja instalar a versão 3.13 do python, pode usar usar a mais atual, pulando a instalação do pyenv e somente crie o venv como abaixo, ative-o e instale as dependências com o requirements*
 
 ```powershell
 # Como instalar no Windows
